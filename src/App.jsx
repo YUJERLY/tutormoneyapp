@@ -84,7 +84,7 @@ export default function App() {
   const [lessonForm, setLessonForm] = useState({
     studentId: "",
     date: todayString(),
-    hours: "1.5",
+    hours: "2",
     hourlyRate: "",
   });
 
@@ -217,7 +217,7 @@ export default function App() {
     setLessonForm({
       studentId: selectedStudent.id,
       date: todayString(),
-      hours: "1.5",
+      hours: "2",
       hourlyRate: String(selectedStudent.hourlyRate),
     });
   };
@@ -362,15 +362,41 @@ export default function App() {
 
                 <div>
                   <label className={labelBase}>上課時數</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    className={inputBase}
-                    placeholder="例如 1.5"
-                    value={lessonForm.hours}
-                    onChange={(e) => setLessonForm((prev) => ({ ...prev, hours: e.target.value }))}
-                  />
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setLessonForm((prev) => ({
+                          ...prev,
+                          hours: String(Math.max(0, (Number(prev.hours) || 0) - 1)),
+                        }))
+                      }
+                      className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+                    >
+                      -1
+                    </button>
+                    <input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      className={inputBase}
+                      placeholder="例如 2"
+                      value={lessonForm.hours}
+                      onChange={(e) => setLessonForm((prev) => ({ ...prev, hours: e.target.value }))}
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setLessonForm((prev) => ({
+                          ...prev,
+                          hours: String((Number(prev.hours) || 0) + 1),
+                        }))
+                      }
+                      className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+                    >
+                      +1
+                    </button>
+                  </div>
                 </div>
 
                 <div>
