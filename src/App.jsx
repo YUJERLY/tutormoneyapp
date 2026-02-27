@@ -226,6 +226,19 @@ export default function App() {
     });
   };
 
+  const handleDeleteLatestLesson = () => {
+    if (sortedLessons.length === 0) return;
+
+    const latestLesson = sortedLessons[0];
+    const confirmed = window.confirm(
+      `確定刪除最新一筆紀錄嗎？\n${latestLesson.studentName}｜${latestLesson.date}｜${latestLesson.hours} 小時`
+    );
+
+    if (!confirmed) return;
+
+    setLessons((prev) => prev.filter((lesson) => lesson.id !== latestLesson.id));
+  };
+
   const sortedLessons = useMemo(() => {
     return [...lessons].sort((a, b) => {
       const dateDiff = new Date(b.date) - new Date(a.date);
@@ -540,11 +553,22 @@ export default function App() {
 
           <aside className="space-y-6">
             <section className={`${cardBase} p-4 sm:p-5`}>
-              <div className="mb-4 flex items-center gap-2">
-                <div className="rounded-xl bg-slate-100 p-2 text-slate-700">
-                  <CalendarDays className="h-4 w-4" />
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <div className="rounded-xl bg-slate-100 p-2 text-slate-700">
+                    <CalendarDays className="h-4 w-4" />
+                  </div>
+                  <h2 className="text-lg font-semibold">最近 5 筆紀錄</h2>
                 </div>
-                <h2 className="text-lg font-semibold">最近 5 筆紀錄</h2>
+                <button
+                  type="button"
+                  onClick={handleDeleteLatestLesson}
+                  disabled={sortedLessons.length === 0}
+                  className="inline-flex items-center gap-1 rounded-xl border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400 disabled:hover:bg-white"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  刪最新
+                </button>
               </div>
 
               <div className="space-y-3">
