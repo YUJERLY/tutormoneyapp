@@ -12,7 +12,17 @@ import {
   Save,
   ChevronDown,
   ChevronUp,
+  BarChart3,
 } from "lucide-react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 const STUDENTS_KEY = "tutor-tracker-students";
 const LESSONS_KEY = "tutor-tracker-lessons";
@@ -300,6 +310,15 @@ ${latestLesson.studentName}｜${latestLesson.date}｜${latestLesson.hours} 小�
       return acc;
     }, {});
   }, [sortedLessons]);
+
+  const monthlyChartData = useMemo(() => {
+    return Object.entries(groupedLessons)
+      .map(([month, monthLessons]) => ({
+        month,
+        income: monthLessons.reduce((sum, lesson) => sum + lesson.amount, 0),
+      }))
+      .reverse();
+  }, [groupedLessons]);
 
   const cardBase =
     "rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-200/60";
@@ -703,6 +722,33 @@ ${latestLesson.studentName}｜${latestLesson.date}｜${latestLesson.hours} 小�
                       );
                     })
                   )}
+                </div>
+              )}
+            </section>
+
+            <section className={`${cardBase} p-4 sm:p-5`}>
+              <div className="mb-4 flex items-center gap-2">
+                <div className="rounded-xl bg-slate-100 p-2 text-slate-700">
+                  <BarChart3 className="h-4 w-4" />
+                </div>
+                <h2 className="text-lg font-semibold">每月收入圖表</h2>
+              </div>
+
+              {monthlyChartData.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-500">
+                  尚未建立足夠資料顯示圖表。
+                </div>
+              ) : (
+                <div className="h-72 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={monthlyChartData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                      <YAxis tickFormatter={(value) => `${Math.round(value / 1000)}k`} tick={{ fontSize: 12 }} />
+                      <Tooltip formatter={(value) => [currency(value), "收入"]} />
+                      <Bar dataKey="income" radius={[8, 8, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
                 </div>
               )}
             </section>
