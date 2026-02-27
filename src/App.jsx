@@ -10,6 +10,8 @@ import {
   TrendingUp,
   BookOpen,
   Save,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
 const STUDENTS_KEY = "tutor-tracker-students";
@@ -87,6 +89,8 @@ export default function App() {
     hours: "2",
     hourlyRate: "",
   });
+
+  const [showAllLessons, setShowAllLessons] = useState(false);
 
   useEffect(() => {
     localStorage.setItem(STUDENTS_KEY, JSON.stringify(students));
@@ -251,6 +255,20 @@ export default function App() {
   };
 
   const recentLessons = sortedLessons.slice(0, 5);
+
+  const groupedLessons = useMemo(() => {
+    return sortedLessons.reduce((acc, lesson) => {
+      const lessonDate = new Date(`${lesson.date}T00:00:00`);
+      const monthKey = `${lessonDate.getFullYear()}年${String(lessonDate.getMonth() + 1).padStart(2, "0")}月`;
+
+      if (!acc[monthKey]) {
+        acc[monthKey] = [];
+      }
+
+      acc[monthKey].push(lesson);
+      return acc;
+    }, {});
+  }, [sortedLessons]);
 
   const cardBase =
     "rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-200/60";
@@ -556,6 +574,66 @@ export default function App() {
                   ))
                 )}
               </div>
+            </section>
+
+            <section className={`${cardBase} p-4 sm:p-5`}>
+              <button
+                type="button"
+                onClick={() => setShowAllLessons((prev) => !prev)}
+                className="flex w-full items-center justify-between gap-3 text-left"
+              >
+                <div>
+                  <h2 className="text-lg font-semibold">所有課程紀錄</h2>
+                  <p className="mt-1 text-sm text-slate-500">點開後可依月份查看完整紀錄</p>
+                </div>
+                <div className="rounded-xl bg-slate-100 p-2 text-slate-700">
+                  {showAllLessons ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </div>
+              </button>
+
+              {showAllLessons && (
+                <div className="mt-4 space-y-4">
+                  {sortedLessons.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-500">
+                      尚未建立課程紀錄。
+                    </div>
+                  ) : (
+                    Object.entries(groupedLessons).map(([month, monthLessons]) => {
+                      const monthTotal = monthLessons.reduce((sum, lesson) => sum + lesson.amount, 0);
+
+                      return (
+                        <div key={month} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                          <div className="flex items-center justify-between gap-3 border-b border-slate-200 pb-3">
+                            <div>
+                              <h3 className="font-semibold text-slate-900">{month}</h3>
+                              <p className="mt-1 text-xs text-slate-500">{monthLessons.length} 筆紀錄</p>
+                            </div>
+                            <p className="text-sm font-semibold text-slate-700">{currency(monthTotal)}</p>
+                          </div>
+
+                          <div className="mt-3 space-y-3">
+                            {monthLessons.map((lesson) => (
+                              <div key={lesson.id} className="rounded-xl bg-white p-3">
+                                <div className="flex items-start justify-between gap-3">
+                                  <div>
+                                    <p className="font-medium text-slate-900">{lesson.studentName}</p>
+                                    <p className="mt-1 text-sm text-slate-500">{lesson.date}</p>
+                                  </div>
+                                  <p className="text-sm font-semibold text-slate-700">{currency(lesson.amount)}</p>
+                                </div>
+                                <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-600">
+                                  <span className="rounded-full bg-slate-100 px-2.5 py-1">{lesson.hours} 小時</span>
+                                  <span className="rounded-full bg-slate-100 px-2.5 py-1">時薪 {currency(lesson.hourlyRate)}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              )}
             </section>
 
             <section className={`${cardBase} p-4 sm:p-5`}>
