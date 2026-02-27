@@ -91,6 +91,7 @@ export default function App() {
   });
 
   const [showAllLessons, setShowAllLessons] = useState(false);
+  const [showSaveActions, setShowSaveActions] = useState(false);
 
   useEffect(() => {
     localStorage.setItem(STUDENTS_KEY, JSON.stringify(students));
@@ -195,8 +196,7 @@ export default function App() {
     }));
   };
 
-  const handleLessonSubmit = (e) => {
-    e.preventDefault();
+  const saveLesson = ({ keepStudent = true } = {}) => {
     const selectedStudent = students.find((s) => s.id === lessonForm.studentId);
     const hours = Number(lessonForm.hours);
     const hourlyRate = Number(lessonForm.hourlyRate);
@@ -219,11 +219,28 @@ export default function App() {
 
     setLessons((prev) => [newLesson, ...prev]);
     setLessonForm({
-      studentId: selectedStudent.id,
+      studentId: keepStudent ? selectedStudent.id : students[0]?.id || "",
       date: todayString(),
       hours: "2",
-      hourlyRate: String(selectedStudent.hourlyRate),
+      hourlyRate: String((keepStudent ? selectedStudent.hourlyRate : students[0]?.hourlyRate) || ""),
     });
+    setShowSaveActions(false);
+  };
+
+  const handleLessonSubmit = (e) => {
+    e.preventDefault();
+    setShowSaveActions(true);
+  };
+
+  const handleClearLessonForm = () => {
+    const selectedStudent = students.find((s) => s.id === lessonForm.studentId) || students[0];
+    setLessonForm({
+      studentId: selectedStudent?.id || "",
+      date: todayString(),
+      hours: "2",
+      hourlyRate: String(selectedStudent?.hourlyRate || ""),
+    });
+    setShowSaveActions(false);
   };
 
   const handleDeleteLatestLesson = () => {
@@ -231,7 +248,8 @@ export default function App() {
 
     const latestLesson = sortedLessons[0];
     const confirmed = window.confirm(
-      `確定刪除最新一筆紀錄嗎？\n${latestLesson.studentName}｜${latestLesson.date}｜${latestLesson.hours} 小時`
+      `確定刪除最新一筆紀錄嗎？
+${latestLesson.studentName}｜${latestLesson.date}｜${latestLesson.hours} 小時`
     );
 
     if (!confirmed) return;
@@ -453,7 +471,7 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="sm:col-span-2">
+                <div className="sm:col-span-2 space-y-3">
                   <button
                     type="submit"
                     disabled={students.length === 0}
@@ -462,6 +480,35 @@ export default function App() {
                     <Save className="h-4 w-4" />
                     儲存課程紀錄
                   </button>
+
+                  {showSaveActions && (
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                      <p className="mb-3 text-sm font-medium text-slate-700">請確認要執行的操作</p>
+                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                        <button
+                          type="button"
+                          onClick={() => saveLesson({ keepStudent: true })}
+                          className="rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                        >
+                          確認儲存
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => saveLesson({ keepStudent: false })}
+                          className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+                        >
+                          儲存並切回預設
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleClearLessonForm}
+                          className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+                        >
+                          取消並重設
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </form>
             </section>
